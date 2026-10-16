@@ -38,10 +38,10 @@ export type DashboardState = {
   voice: {
     configured: boolean;
     connected: boolean;
-    channelId: number | null;
+    channelId: string | null;
     channelName: string | null;
     channels: Array<{
-      id: number;
+      id: string;
       name: string;
       categoryName: string | null;
       type: "voice";
