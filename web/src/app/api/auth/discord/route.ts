@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { oauthStateCookie } from "@/lib/session";
+import { setOAuthStateCookie } from "@/lib/session";
 
 export async function GET() {
   const clientId = process.env.DISCORD_CLIENT_ID;
@@ -14,6 +14,6 @@ export async function GET() {
   url.searchParams.set("state", state);
   url.searchParams.set("redirect_uri", redirectUri);
   const response = NextResponse.redirect(url);
-  response.headers.append("Set-Cookie", oauthStateCookie(state));
+  setOAuthStateCookie(response, state);
   return response;
 }

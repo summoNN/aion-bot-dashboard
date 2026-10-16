@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const guilds = await getEligibleGuilds(session);
     if (!guilds.some((guild) => guild.id === guildId)) return NextResponse.json({ error: "You cannot manage this server." }, { status: 403 });
     const response = NextResponse.json({ ok: true, guildId });
-    response.headers.append("Set-Cookie", selectedGuildCookie(guildId));
+    selectedGuildCookie(response, guildId);
     return response;
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not validate this server." }, { status: 502 });
