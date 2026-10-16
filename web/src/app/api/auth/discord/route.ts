@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { setOAuthStateCookie } from "@/lib/session";
 
-export async function GET() {
+export async function GET(request: Request) {
   const clientId = process.env.DISCORD_CLIENT_ID;
   const redirectUri = process.env.DISCORD_REDIRECT_URI;
   if (!clientId || !redirectUri) return NextResponse.json({ error: "Discord OAuth is not configured." }, { status: 503 });
@@ -14,6 +14,10 @@ export async function GET() {
   url.searchParams.set("state", state);
   url.searchParams.set("redirect_uri", redirectUri);
   const response = NextResponse.redirect(url);
-  setOAuthStateCookie(response, state);
+  setOAuthStateCookie(response, state, isSecureRequest(request));
   return response;
+}
+
+function isSecureRequest(request: Request) {
+  return new URL(request.url).protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
 }

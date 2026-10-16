@@ -6,10 +6,6 @@ import type { DiscordUser } from "./types";
 const SESSION_COOKIE = "aion_session";
 const STATE_COOKIE = "aion_discord_oauth_state";
 
-function cookieSecurity() {
-  return process.env.NODE_ENV === "production";
-}
-
 export type AuthSession = {
   accessToken: string;
   refreshToken: string;
@@ -61,28 +57,28 @@ export async function getSelectedGuildId() {
   return store.get("aion_selected_guild")?.value ?? null;
 }
 
-function cookieOptions(maxAge: number) {
+function cookieOptions(maxAge: number, secure: boolean) {
   return {
     httpOnly: true,
-    secure: cookieSecurity(),
+    secure,
     sameSite: "lax" as const,
     path: "/",
     maxAge,
   };
 }
 
-export function setSessionCookie(response: NextResponse, session: AuthSession) {
-  response.cookies.set(SESSION_COOKIE, encrypt(session), cookieOptions(60 * 60 * 24 * 7));
+export function setSessionCookie(response: NextResponse, session: AuthSession, secure: boolean) {
+  response.cookies.set(SESSION_COOKIE, encrypt(session), cookieOptions(60 * 60 * 24 * 7, secure));
 }
 
-export function clearAuthCookies(response: NextResponse) {
-  response.cookies.set(SESSION_COOKIE, "", cookieOptions(0));
-  response.cookies.set(STATE_COOKIE, "", cookieOptions(0));
-  response.cookies.set("aion_selected_guild", "", cookieOptions(0));
+export function clearAuthCookies(response: NextResponse, secure: boolean) {
+  response.cookies.set(SESSION_COOKIE, "", cookieOptions(0, secure));
+  response.cookies.set(STATE_COOKIE, "", cookieOptions(0, secure));
+  response.cookies.set("aion_selected_guild", "", cookieOptions(0, secure));
 }
 
-export function setOAuthStateCookie(response: NextResponse, state: string) {
-  response.cookies.set(STATE_COOKIE, state, cookieOptions(600));
+export function setOAuthStateCookie(response: NextResponse, state: string, secure: boolean) {
+  response.cookies.set(STATE_COOKIE, state, cookieOptions(600, secure));
 }
 
 export async function getOAuthState() {
@@ -90,6 +86,10 @@ export async function getOAuthState() {
   return store.get(STATE_COOKIE)?.value ?? null;
 }
 
-export function selectedGuildCookie(response: NextResponse, guildId: string) {
-  response.cookies.set("aion_selected_guild", guildId, cookieOptions(60 * 60 * 24 * 30));
+export function selectedGuildCookie(response: NextResponse, guildId: string, secure: boolean) {
+  response.cookies.set("aion_selected_guild", guildId, cookieOptions(60 * 60 * 24 * 30, secure));
+}
+
+export function clearOAuthStateCookie(response: NextResponse, secure: boolean) {
+  response.cookies.set(STATE_COOKIE, "", cookieOptions(0, secure));
 }

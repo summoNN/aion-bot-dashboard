@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { exchangeCode, getDiscordUser } from "@/lib/discord";
-import { getOAuthState, setSessionCookie, clearAuthCookies } from "@/lib/session";
+import { getOAuthState, setSessionCookie, clearAuthCookies, clearOAuthStateCookie } from "@/lib/session";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -14,16 +14,22 @@ export async function GET(request: Request) {
     const token = await exchangeCode(code);
     const user = await getDiscordUser(token.access_token);
     const response = NextResponse.redirect(new URL("/select", request.url));
+    const secure = isSecureRequest(request);
     setSessionCookie(response, {
       accessToken: token.access_token,
       refreshToken: token.refresh_token,
       expiresAt: Date.now() + token.expires_in * 1000,
       user,
-    });
+    }, secure);
+    clearOAuthStateCookie(response, secure);
     return response;
   } catch (error) {
     const response = NextResponse.json({ error: error instanceof Error ? error.message : "Discord sign-in failed." }, { status: 502 });
-    clearAuthCookies(response);
+    clearAuthCookies(response, isSecureRequest(request));
     return response;
   }
+}
+
+function isSecureRequest(request: Request) {
+  return new URL(request.url).protocol === "https:" || request.headers.get("x-forwarded-proto") === "https";
 }
