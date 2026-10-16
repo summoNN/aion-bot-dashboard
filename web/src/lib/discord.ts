@@ -31,10 +31,15 @@ function permissions(value: string | number | undefined) {
 }
 
 async function discordFetch<T>(path: string, accessToken: string) {
-  const response = await fetch(`${DISCORD_API}${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${DISCORD_API}${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error("Discord could not be reached from the dashboard server.");
+  }
   if (!response.ok) throw new Error(`Discord API returned ${response.status}`);
   return (await response.json()) as T;
 }
@@ -77,12 +82,17 @@ async function getUserMember(accessToken: string, guildId: string) {
 async function getBotGuilds() {
   const baseUrl = process.env.BOT_API_URL?.replace(/\/$/, "");
   const token = process.env.BOT_API_TOKEN;
-  if (!baseUrl || !token) throw new Error("Bot API is not configured");
-  const response = await fetch(`${baseUrl}/api/v1/guilds`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error("The bot API must expose GET /api/v1/guilds");
+  if (!baseUrl || !token) throw new Error("BOT_API_URL and BOT_API_TOKEN must be configured.");
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}/api/v1/guilds`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(`The dashboard server cannot reach BOT_API_URL (${baseUrl}). If this dashboard is on Vercel, localhost will not work; use a public HTTPS bot API URL.`);
+  }
+  if (!response.ok) throw new Error(`Bot API returned ${response.status}. It must expose GET /api/v1/guilds with the configured token.`);
   const payload = (await response.json()) as { guilds?: BotGuild[] } | BotGuild[];
   return Array.isArray(payload) ? payload : payload.guilds ?? [];
 }
