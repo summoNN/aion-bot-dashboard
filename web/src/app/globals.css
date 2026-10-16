@@ -28,7 +28,7 @@ body {
   font-family: "DM Sans", sans-serif;
 }
 
-button, input { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 
 .app-shell { min-height: 100vh; display: flex; }
@@ -117,7 +117,15 @@ h3 { font-size: 14px; }
 .range-wrap { display: flex; align-items: center; gap: 10px; }
 input[type="range"] { width: 150px; accent-color: var(--accent); }
 .range-value { width: 38px; color: var(--ink); font-size: 12px; font-weight: 700; text-align: right; }
+.channel-select { width: 190px; max-width: 100%; padding: 9px 10px; color: var(--ink); background: var(--surface-muted); border: 1px solid var(--line); border-radius: 8px; font-size: 11px; }
+.channel-select:focus, .text-input:focus { outline: 2px solid #c5c8ff; outline-offset: 1px; border-color: var(--accent); }
 .schedule-chip { display: inline-flex; margin: 3px 4px 0 0; padding: 4px 7px; color: var(--muted); background: var(--surface-muted); border-radius: 6px; font-size: 10px; }
+.message-card { margin-top: 18px; }
+.message-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.message-editor { display: grid; gap: 11px; padding: 16px; background: #fbfbfe; border: 1px solid var(--line); border-radius: 12px; }
+.field { display: grid; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 600; }
+.text-input { width: 100%; min-height: 72px; resize: vertical; padding: 10px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; line-height: 1.45; }
+.message-editor .button { justify-self: start; }
 .empty { padding: 25px 0 4px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .alert { display: flex; gap: 10px; padding: 15px; color: var(--warning); background: var(--warning-soft); border: 1px solid #f4dfaa; border-radius: 12px; font-size: 12px; line-height: 1.5; }
 .error-card { max-width: 620px; margin: 50px auto; }
@@ -153,6 +161,7 @@ input[type="range"] { width: 150px; accent-color: var(--accent); }
 @media (max-width: 1040px) {
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .two-col, .settings-grid { grid-template-columns: 1fr; }
+  .message-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -171,6 +180,8 @@ input[type="range"] { width: 150px; accent-color: var(--accent); }
   .event-row { display: block; }
   .event-next { margin: 9px 0 0 21px; text-align: left; }
   .setting-row { align-items: flex-start; }
+  .channel-row { display: block; }
+  .channel-select { margin-top: 10px; width: 100%; }
   .public-card { padding: 32px 22px; }
   .picker-heading { display: block; }
   .picker-heading .button { margin-top: 16px; }

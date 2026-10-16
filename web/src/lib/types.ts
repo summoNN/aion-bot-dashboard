@@ -40,6 +40,11 @@ export type DashboardState = {
     connected: boolean;
     channelId: number | null;
     channelName: string | null;
+    channels: Array<{
+      id: number;
+      name: string;
+      categoryName: string | null;
+    }>;
     autojoin: boolean;
     volume: number;
     latencyMs: number | null;
