@@ -83,9 +83,18 @@ async function getBotGuilds() {
   const baseUrl = process.env.BOT_API_URL?.replace(/\/$/, "");
   const token = process.env.BOT_API_TOKEN;
   if (!baseUrl || !token) throw new Error("BOT_API_URL and BOT_API_TOKEN must be configured.");
+  let apiUrl: URL;
+  try {
+    apiUrl = new URL(baseUrl);
+  } catch {
+    throw new Error("BOT_API_URL must include http:// or https://, for example http://localhost:8765.");
+  }
+  if (!['http:', 'https:'].includes(apiUrl.protocol)) {
+    throw new Error("BOT_API_URL must use http:// or https://.");
+  }
   let response: Response;
   try {
-    response = await fetch(`${baseUrl}/api/v1/guilds`, {
+    response = await fetch(`${apiUrl.toString().replace(/\/$/, "")}/api/v1/guilds`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
