@@ -33,3 +33,29 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -q
+
+  dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dashboard dependencies
+        run: npm ci
+
+      - name: Lint dashboard
+        run: npm run lint
+
+      - name: Build dashboard
+        run: npm run build

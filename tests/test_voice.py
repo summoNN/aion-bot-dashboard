@@ -19,6 +19,17 @@ def test_new_voice_target_is_persistent_autojoin() -> None:
         assert reloaded is not None and reloaded.channel_id == 456 and reloaded.autojoin is True
 
 
+def test_voice_volume_is_persistent() -> None:
+    with TemporaryDirectory() as directory:
+        path = Path(directory) / "voice.json"
+        store = VoiceConfigStore(path)
+        store.set_channel(123, 456)
+        updated = store.set_volume(123, 1.35)
+        assert updated.volume == 1.35
+        reloaded = VoiceConfigStore(path).get(123)
+        assert reloaded is not None and reloaded.volume == 1.35
+
+
 def test_intentional_leave_suppresses_reconnect() -> None:
     class FakeClient:
         channel = None

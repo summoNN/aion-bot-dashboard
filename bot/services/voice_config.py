@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import tempfile
 from dataclasses import dataclass
@@ -24,6 +25,7 @@ class GuildVoiceConfig:
 
     channel_id: int
     autojoin: bool = False
+    volume: float = 1.0
 
 
 class VoiceConfigStore:
@@ -62,11 +64,20 @@ class VoiceConfigStore:
                 raise VoiceConfigError(f"Invalid voice configuration for guild {raw_guild_id}")
             channel_id = raw_config.get("channel_id")
             autojoin = raw_config.get("autojoin", False)
+            volume = raw_config.get("volume", 1.0)
             if isinstance(channel_id, bool) or not isinstance(channel_id, int) or channel_id <= 0:
                 raise VoiceConfigError(f"Invalid channel ID for guild {guild_id}")
             if not isinstance(autojoin, bool):
                 raise VoiceConfigError(f"autojoin must be boolean for guild {guild_id}")
-            guilds[guild_id] = GuildVoiceConfig(channel_id=channel_id, autojoin=autojoin)
+            if isinstance(volume, bool) or not isinstance(volume, (int, float)) or not math.isfinite(volume):
+                raise VoiceConfigError(f"volume must be a number for guild {guild_id}")
+            if not 0.0 <= volume <= 2.0:
+                raise VoiceConfigError(f"volume must be between 0.0 and 2.0 for guild {guild_id}")
+            guilds[guild_id] = GuildVoiceConfig(
+                channel_id=channel_id,
+                autojoin=autojoin,
+                volume=round(float(volume), 2),
+            )
         self._guilds = guilds
         LOGGER.info("Loaded voice configuration for %d guild(s) from %s", len(guilds), self.path)
 
@@ -78,7 +89,11 @@ class VoiceConfigStore:
         current = self._guilds.get(guild_id)
         # A newly configured permanent channel should be joined on startup.
         # Existing administrators can still opt out explicitly with /autojoin disable.
-        updated = GuildVoiceConfig(channel_id=channel_id, autojoin=current.autojoin if current else True)
+        updated = GuildVoiceConfig(
+            channel_id=channel_id,
+            autojoin=current.autojoin if current else True,
+            volume=current.volume if current else 1.0,
+        )
         self._guilds[guild_id] = updated
         self.save()
         return updated
@@ -89,7 +104,24 @@ class VoiceConfigStore:
         current = self._guilds.get(guild_id)
         if current is None:
             raise VoiceConfigError("Set a voice channel before changing autojoin")
-        updated = GuildVoiceConfig(channel_id=current.channel_id, autojoin=enabled)
+        updated = GuildVoiceConfig(channel_id=current.channel_id, autojoin=enabled, volume=current.volume)
+        self._guilds[guild_id] = updated
+        self.save()
+        return updated
+
+    def set_volume(self, guild_id: int, value: float) -> GuildVoiceConfig:
+        if guild_id <= 0 or isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise VoiceConfigError("Invalid guild ID or volume value")
+        if not math.isfinite(value) or not 0.0 <= value <= 2.0:
+            raise VoiceConfigError("volume must be between 0.0 and 2.0")
+        current = self._guilds.get(guild_id)
+        if current is None:
+            raise VoiceConfigError("Set a voice channel before changing volume")
+        updated = GuildVoiceConfig(
+            channel_id=current.channel_id,
+            autojoin=current.autojoin,
+            volume=round(float(value), 2),
+        )
         self._guilds[guild_id] = updated
         self.save()
         return updated
@@ -114,6 +146,7 @@ class VoiceConfigStore:
                             str(guild_id): {
                                 "channel_id": config.channel_id,
                                 "autojoin": config.autojoin,
+                                "volume": config.volume,
                             }
                             for guild_id, config in sorted(self._guilds.items())
                         },

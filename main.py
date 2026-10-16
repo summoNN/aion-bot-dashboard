@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 from bot.cogs.events import EventsCog
 from bot.services.dashboard import DashboardConfigError, DashboardService, DashboardStore
+from bot.services.control_api import ControlApi
 from bot.services.event_sources import EventConfigError
 from bot.services.tts import TTSService
 from bot.services.voice import VoiceService
@@ -60,6 +61,9 @@ class Settings:
     health_path: Path
     dashboard_config_path: Path
     dashboard_update_interval: float
+    control_api_host: str
+    control_api_port: int
+    control_api_token: str
 
     @classmethod
     def from_environment(cls) -> Settings:
@@ -87,6 +91,9 @@ class Settings:
                 "DASHBOARD_UPDATE_INTERVAL",
                 60.0,
             ),
+            control_api_host=os.getenv("CONTROL_API_HOST", "0.0.0.0"),
+            control_api_port=_parse_int(os.getenv("CONTROL_API_PORT"), "CONTROL_API_PORT") or 8765,
+            control_api_token=os.getenv("CONTROL_API_TOKEN", "").strip(),
         )
 
 
@@ -128,6 +135,7 @@ class AionBot(commands.Bot):
         self.tts_service = TTSService(settings.tts_voice, settings.tts_cache_dir)
         self.events_cog: EventsCog | None = None
         self.dashboard_service: DashboardService | None = None
+        self.control_api: ControlApi | None = None
         self._started = False
 
     def _mark_health(self) -> None:
@@ -164,6 +172,18 @@ class AionBot(commands.Bot):
         )
         self.events_cog.scheduler.add_change_listener(self.dashboard_service.on_schedule_changed)
         await self.add_cog(self.dashboard_service)
+        control_api_token = getattr(self.settings, "control_api_token", "")
+        if control_api_token:
+            self.control_api = ControlApi(
+                self,
+                self.events_cog,
+                self.voice_service,
+                self.tts_service,
+                host=getattr(self.settings, "control_api_host", "0.0.0.0"),
+                port=getattr(self.settings, "control_api_port", 8765),
+                token=control_api_token,
+            )
+            await self.control_api.start()
 
     async def on_ready(self) -> None:
         if self.user is None:
@@ -221,6 +241,8 @@ class AionBot(commands.Bot):
 
     async def close(self) -> None:
         self._clear_health()
+        if self.control_api is not None:
+            await self.control_api.stop()
         if self.dashboard_service is not None:
             await self.dashboard_service.stop()
         if self.events_cog is not None:

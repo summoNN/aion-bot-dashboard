@@ -67,12 +67,52 @@ class VoiceService:
         return self.voice_config.get(guild.id)
 
     def volume_for(self, guild: discord.Guild) -> float:
+        config = self.voice_config.get(guild.id)
+        if config is not None:
+            return config.volume
         return self._guild_volumes.get(guild.id, self._default_volume)
 
     def set_volume(self, guild: discord.Guild, value: float) -> float:
         volume = self._validate_volume(value)
-        self._guild_volumes[guild.id] = volume
+        if self.voice_config.get(guild.id) is not None:
+            self.voice_config.set_volume(guild.id, volume)
+        else:
+            self._guild_volumes[guild.id] = volume
         return volume
+
+    def status_details(self, guild: discord.Guild | None) -> dict[str, object]:
+        """Return structured voice state for the web control API."""
+        if guild is None:
+            return {
+                "configured": False,
+                "connected": False,
+                "channelId": None,
+                "channelName": None,
+                "autojoin": False,
+                "volume": self._default_volume,
+                "latencyMs": None,
+                "reconnect": "disabled",
+            }
+        config = self.voice_config.get(guild.id)
+        client = guild.voice_client
+        channel = self.target_channel(guild)
+        connected = bool(client is not None and client.is_connected())
+        latency = getattr(client, "latency", None) if connected else None
+        reconnect = "active" if guild.id in self._reconnect_enabled else "disabled"
+        if guild.id in self._intentional_disconnects:
+            reconnect = "suspended"
+        elif guild.id in self._retry_tasks:
+            reconnect = "retrying"
+        return {
+            "configured": config is not None,
+            "connected": connected,
+            "channelId": config.channel_id if config else None,
+            "channelName": channel.name if channel else (str(config.channel_id) if config else None),
+            "autojoin": config.autojoin if config else False,
+            "volume": self.volume_for(guild),
+            "latencyMs": round(latency * 1000) if isinstance(latency, (int, float)) else None,
+            "reconnect": reconnect,
+        }
 
     def set_channel(self, guild: discord.Guild, channel: VoiceChannelLike) -> GuildVoiceConfig:
         if channel.guild.id != guild.id:

@@ -2,9 +2,9 @@
 
 Production-oriented Discord bot for announcing AION 2 events in configured Discord voice channels. It uses Python 3.12+, `discord.py` voice support, APScheduler, `python-dotenv`, `edge-tts`, and FFmpeg.
 
-## Deployment
+## Web dashboard and deployment
 
-The source is GitHub-ready and includes automated tests under `.github/workflows/ci.yml`. The bot itself must run on an always-on Python/Docker host with FFmpeg and persistent storage; Vercel cannot keep a Discord gateway or voice process alive. See [DEPLOYMENT.md](DEPLOYMENT.md) for the GitHub push workflow and the hosting architecture.
+The project includes a minimal Next.js + React + TypeScript control dashboard in [`web/`](web/). It reads live state and applies validated changes through the bot's token-protected control API. The source is GitHub-ready and CI builds both the Python bot and the dashboard. Deploy `web/` to Vercel and run the bot itself on an always-on Python/Docker host with FFmpeg and persistent storage. See [DEPLOYMENT.md](DEPLOYMENT.md) for the full setup.
 
 This sibling project adds a persistent fantasy-themed dashboard and lives at `C:\Users\hadda\Desktop\aion-bot-dashboard`, leaving the original working bot untouched.
 

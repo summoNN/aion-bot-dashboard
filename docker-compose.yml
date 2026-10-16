@@ -8,6 +8,9 @@ services:
     environment:
       FFMPEG_EXECUTABLE: ffmpeg
       HEALTHCHECK_PATH: /tmp/aion2-event-announcer-ready
+      CONTROL_API_HOST: 0.0.0.0
+    ports:
+      - "8765:8765"
     volumes:
       - ./config:/app/config
       - ./cache:/app/cache
