@@ -11,7 +11,7 @@ function formatNext(value: string | null) {
 
 export function Overview({ data, error }: { data: DashboardState | null; error: string | null }) {
   if (!data) {
-    return <AppShell><div className="card error-card"><div className="eyebrow">Instance connection</div><h1>Connect your bot</h1><p className="topbar-copy">The UI is ready. Add the control API values from your bot instance to the dashboard environment.</p><div className="alert" style={{ marginTop: 22 }}><CircleWarning />{error}</div><code>BOT_API_URL=http://your-bot-host:8765<br />BOT_API_TOKEN=your-control-api-token<br />BOT_GUILD_ID=your-discord-server-id</code></div></AppShell>;
+    return <AppShell><div className="card error-card"><div className="eyebrow">Instance connection</div><h1>Connect your bot</h1><p className="topbar-copy">The UI is ready. Add the control API values from your bot instance to the dashboard environment.</p><div className="alert" style={{ marginTop: 22 }}><CircleWarning />{error}</div><code>BOT_API_URL=https://your-bot-host.example.com<br />BOT_API_TOKEN=your-control-api-token</code></div></AppShell>;
   }
 
   const connected = data.bot.status === "online";
