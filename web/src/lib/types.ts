@@ -44,6 +44,7 @@ export type DashboardState = {
       id: number;
       name: string;
       categoryName: string | null;
+      type: "voice" | "stage";
     }>;
     autojoin: boolean;
     volume: number;

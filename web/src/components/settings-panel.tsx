@@ -102,10 +102,10 @@ export function SettingsPanel() {
         <div className="section-head"><div><h2>Voice behavior</h2><p>Choose where announcements are played.</p></div><Mic2 size={18} color="#5f65e8" /></div>
         <div className="setting-list">
           <div className="setting-row channel-row">
-            <div><div className="setting-label">Announcement channel</div><div className="setting-description">Select a voice or stage channel from {data.guild.name}.</div></div>
+            <div><div className="setting-label">Announcement channel</div><div className="setting-description">Select a voice or stage channel that the bot can access in {data.guild.name}.</div></div>
             <select className="channel-select" value={data.voice.channelId ? String(data.voice.channelId) : ""} onChange={(event) => { if (event.target.value) mutate("/api/config", { channelId: Number(event.target.value) }, "channel"); }} disabled={busy !== null || channels.length === 0} aria-label="Announcement channel">
               <option value="">{channels.length ? "Choose channel" : "No voice channels found"}</option>
-              {channels.map((channel) => <option value={channel.id} key={channel.id}>{channel.categoryName ? `${channel.categoryName} / ` : ""}{channel.name}</option>)}
+              {channels.map((channel) => <option value={channel.id} key={channel.id}>{channel.categoryName ? `${channel.categoryName} / ` : ""}{channel.name} ({channel.type})</option>)}
             </select>
           </div>
           <div className="setting-row">
