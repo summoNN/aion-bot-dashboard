@@ -74,7 +74,7 @@ export function SettingsPanel() {
     return <AppShell><div className="card error-card"><div className="eyebrow">Bot configuration</div><h1>Waiting for your instance</h1><p className="topbar-copy">{error || "Loading the secure control API…"}</p></div></AppShell>;
   }
 
-  const channels = data.voice.channels ?? [];
+  const channels = Array.from(new Map((data.voice.channels ?? []).map((channel) => [channel.id, channel])).values());
   return <AppShell>
     <div className="topbar">
       <div><div className="eyebrow">Bot configuration</div><h1>Make it yours.</h1><p className="topbar-copy">Tune schedules, announcement text, and voice behavior for {data.guild.name}.</p></div>
