@@ -1,4 +1,5 @@
 import { Activity, CalendarClock, Mic2, Radio, Server } from "lucide-react";
+import Link from "next/link";
 import { AppShell } from "./app-shell";
 import { StatusPill } from "./status-pill";
 import type { DashboardState } from "@/lib/types";
@@ -17,7 +18,7 @@ export function Overview({ data, error }: { data: DashboardState | null; error: 
   return <AppShell>
     <div className="topbar">
       <div><div className="eyebrow">Overview</div><h1>Good to see you.</h1><p className="topbar-copy">A quiet view of what your AION 2 instance is doing right now.</p></div>
-      <div className="instance"><div className="instance-avatar">{data.guild.name.slice(0, 2).toUpperCase()}</div><div><div className="instance-name">{data.guild.name}</div><div className="instance-id">Guild {data.guild.id}</div></div></div>
+      <div className="instance"><div className="instance-avatar">{data.guild.name.slice(0, 2).toUpperCase()}</div><div><div className="instance-name">{data.guild.name}</div><div className="instance-id">Guild {data.guild.id}</div></div><Link className="instance-change" href="/select">Change</Link></div>
     </div>
     <div className="grid stats-grid">
       <Stat icon={<Activity size={16} />} label="Bot status" value={connected ? "Online" : "Starting"} detail={data.bot.name} />

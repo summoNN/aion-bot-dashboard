@@ -18,12 +18,15 @@ Open `http://localhost:3000`.
 Configure `web/.env.local`:
 
 ```text
+DISCORD_CLIENT_ID=your-discord-application-client-id
+DISCORD_CLIENT_SECRET=your-discord-application-client-secret
+DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/discord/callback
+DISCORD_SESSION_SECRET=generate-a-long-random-secret-at-least-32-characters
 BOT_API_URL=http://localhost:8765
-BOT_API_TOKEN=your-control-api-token
-BOT_GUILD_ID=your-discord-server-id
+BOT_API_TOKEN=the-bot-control-api-token
 ```
 
-The dashboard uses server-side proxy routes, so `BOT_API_TOKEN` is never exposed to the browser.
+Register the redirect URL in the Discord Developer Portal. The dashboard signs users in with Discord, then shows only servers where the bot is installed and the user has sufficient permissions. The dashboard uses server-side proxy routes, so Discord and bot tokens are never exposed to the browser.
 
 ## Features
 
@@ -45,4 +48,4 @@ npm run build
 
 ## Deployment
 
-Deploy the `web/` directory as the Vercel project root. Add `BOT_API_URL`, `BOT_API_TOKEN`, and `BOT_GUILD_ID` as server-side environment variables. See [DEPLOYMENT.md](DEPLOYMENT.md) for the Vercel setup.
+Deploy the `web/` directory as the Vercel project root. Add the OAuth, session, and bot API variables from `web/.env.example`. See [DEPLOYMENT.md](DEPLOYMENT.md) for the Vercel setup.

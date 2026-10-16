@@ -64,3 +64,17 @@ export type DashboardState = {
     }>;
   };
 };
+
+export type DiscordUser = {
+  id: string;
+  username: string;
+  global_name?: string | null;
+  avatar?: string | null;
+};
+
+export type EligibleGuild = {
+  id: string;
+  name: string;
+  iconUrl: string | null;
+  reason: "owner" | "administrator" | "manage_guild" | "role_hierarchy";
+};

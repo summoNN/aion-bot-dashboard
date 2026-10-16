@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
+import { getBotContext } from "@/lib/bot-api";
 
 export async function GET() {
-  const baseUrl = process.env.BOT_API_URL?.replace(/\/$/, "");
-  const token = process.env.BOT_API_TOKEN;
-  const guildId = process.env.BOT_GUILD_ID;
-
-  if (!baseUrl || !token || !guildId) {
-    return NextResponse.json({ error: "Bot instance is not configured." }, { status: 503 });
-  }
+  const context = await getBotContext();
+  if ("error" in context) return NextResponse.json({ error: context.error }, { status: 401 });
 
   try {
-    const response = await fetch(`${baseUrl}/api/v1/state/${guildId}`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const response = await fetch(`${context.baseUrl}/api/v1/state/${context.guildId}`, {
+      headers: { Authorization: `Bearer ${context.token}` },
       cache: "no-store",
     });
     const payload = await response.json();
