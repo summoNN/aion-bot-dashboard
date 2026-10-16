@@ -30,18 +30,39 @@ function permissions(value: string | number | undefined) {
   try { return BigInt(String(value ?? "0")); } catch { return BigInt(0); }
 }
 
+function retryAfterSeconds(response: Response) {
+  const header = Number(response.headers.get("retry-after"));
+  if (Number.isFinite(header) && header >= 0) return header;
+  return 1;
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 async function discordFetch<T>(path: string, accessToken: string) {
-  let response: Response;
-  try {
-    response = await fetch(`${DISCORD_API}${path}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-    });
-  } catch {
-    throw new Error("Discord could not be reached from the dashboard server.");
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let response: Response;
+    try {
+      response = await fetch(`${DISCORD_API}${path}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+      });
+    } catch {
+      throw new Error("Discord could not be reached from the dashboard server.");
+    }
+    if (response.status === 429) {
+      const retryAfter = retryAfterSeconds(response);
+      if (attempt === 0 && retryAfter <= 3) {
+        await wait(retryAfter * 1000);
+        continue;
+      }
+      throw new Error(`Discord is temporarily rate-limiting requests. Please wait ${Math.ceil(retryAfter)} seconds and try again.`);
+    }
+    if (!response.ok) throw new Error(`Discord API returned ${response.status}`);
+    return (await response.json()) as T;
   }
-  if (!response.ok) throw new Error(`Discord API returned ${response.status}`);
-  return (await response.json()) as T;
+  throw new Error("Discord is temporarily unavailable. Please try again.");
 }
 
 export async function exchangeCode(code: string) {
